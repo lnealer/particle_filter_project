@@ -146,7 +146,7 @@ class ParticleFilter:
         shiftx = origin_x/res # map from occupancy grid to rviz
         shifty = origin_x/res
         i=0
-        while (i <= 10000):
+        while (i < self.num_particles):
             x = randint(0,self.map.info.width)
             y = randint(0,self.map.info.height)
             ind = x + y*self.map.info.width
@@ -156,6 +156,7 @@ class ParticleFilter:
                      i += 1
                      theta = np.pi/randint(1,3)
                      x = float(x+shiftx)*res
+                     print(x)
                      y = float(y+shifty)*res
                      initial_particle_set.append([x,y,theta])
 
@@ -288,13 +289,6 @@ class ParticleFilter:
         
         # TODO
         print("do stuff")
-        # point = Point()
-        # point.x = 0
-        # point.y = 0
-        # for p in self.particle_cloud:
-        #     pose.x = pose.x + p.position.x
-        #     pose.y = pose.y + p.position.y
-        # self.robot_estimate = pose
 
     
     def update_particle_weights_with_measurement_model(self, data):
@@ -311,7 +305,33 @@ class ParticleFilter:
         # all of the particles correspondingly
 
         # TODO
-        print("do stuff")
+        curr_x = self.odom_pose.pose.position.x
+        old_x = self.odom_pose_last_motion_update.pose.position.x
+        dx = curr_x - old_x
+        curr_y = self.odom_pose.pose.position.y
+        old_y = self.odom_pose_last_motion_update.pose.position.y     
+        dy = curr_y - old_y 
+        curr_yaw = get_yaw_from_pose(self.odom_pose.pose)
+        old_yaw = get_yaw_from_pose(self.odom_pose_last_motion_update.pose)
+        dyaw = curr_yaw - old_yaw
+
+        for p in self.particle_cloud:
+            res = self.map.info.resolution
+            origin_x = self.map.info.origin.position.x
+            origin_y = self.map.info.origin.position.y
+            shiftx = origin_x/res # map from occupancy grid to rviz
+            shifty = origin_x/res
+            dx = dx*res
+            dy = dy*res
+            p.pose.position.x += dx
+            p.pose.position.y += dy
+            q = quaternion_from_euler(0.0, 0.0, old_yaw+dyaw)
+            print(p.pose.position.x)
+            p.pose.orientation.x = q[0]                                             
+            p.pose.orientation.y = q[1]
+            p.pose.orientation.z = q[2]
+            p.pose.orientation.w = q[3]
+
 
 
 
