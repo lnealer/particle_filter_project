@@ -141,6 +141,14 @@ class ParticleFilter:
     # TODO
     #ocucpancy check
         initial_particle_set = []
+        res = self.map.info.resolution
+        print(res)
+        origin_x = self.map.info.origin.position.x
+        origin_y = self.map.info.origin.position.y
+        shiftx = origin_x/res
+        print(shiftx)
+        shifty = origin_x/res
+        print(shifty)
         i=0
         while (i <= 10000):
             x = randint(0,self.map.info.width)
@@ -151,7 +159,9 @@ class ParticleFilter:
             if self.map.data[ind] != -1:
                      i+= 1
                      theta = np.pi/randint(1,3)
-                     initial_particle_set.append([float(x-200)/20,float(y-200)/20,theta])
+                     x = float(x+shiftx)
+                     y= float(y+shifty)
+                     initial_particle_set.append([x*res,y*res,theta])
 
         # assign positions to particles
         for i in range(len(initial_particle_set)):
