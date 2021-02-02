@@ -12,12 +12,14 @@ from tf import TransformListener
 from tf import TransformBroadcaster
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
+import random
 import numpy as np
 from numpy.random import random_sample
+from numpy.random import randint
 import math
 from copy import deepcopy
 
-from random import randint, random
+from random import randint, random, sample
 
 
 
@@ -130,38 +132,60 @@ class ParticleFilter:
     def get_map(self, data):
 
         self.map = data
-
-        self.occupancy_field = OccupancyField(data)
+   
 
     
 
     def initialize_particle_cloud(self):
-        
-        # TODO
+	# initialize particle positions
+    # TODO
+    #ocucpancy check
+        initial_particle_set = []
+        i=0
+        while (i <= 10000):
+            x = randint(0,self.map.info.width)
+            y = randint(0,self.map.info.height)
+            ind = (x)+(y)*self.map.info.width
+            if (ind >= len(self.map.data)):
+                continue
+            if self.map.data[ind] != -1:
+                     i+= 1
+                     theta = np.pi/randint(1,3)
+                     initial_particle_set.append([float(x-200)/20,float(y-200)/20,theta])
 
-
+        # assign positions to particles
+        for i in range(len(initial_particle_set)):
+            p = Pose()
+            p.position = Point()
+            p.position.x = initial_particle_set[i][0]
+            p.position.y = initial_particle_set[i][1]
+            p.position.z = 0
+            p.orientation = Quaternion()
+            q = quaternion_from_euler(0.0, 0.0, initial_particle_set[i][2])
+            p.orientation.x = q[0]                                             
+            p.orientation.y = q[1]
+            p.orientation.z = q[2]
+            p.orientation.w = q[3]
+	    	#initialize the new particle, where all will have the same weight (1.0)
+            new_particle = Particle(p, 1.0)      
+	    	#append the particle to the particle cloud
+            self.particle_cloud.append(new_particle)
         self.normalize_particles()
-
         self.publish_particle_cloud()
 
 
     def normalize_particles(self):
         # make all the particle weights sum to 1.0
-        
+        print("do stuff")    
         # TODO
 
-
-
     def publish_particle_cloud(self):
-
         particle_cloud_pose_array = PoseArray()
         particle_cloud_pose_array.header = Header(stamp=rospy.Time.now(), frame_id=self.map_topic)
         particle_cloud_pose_array.poses
-
         for part in self.particle_cloud:
             particle_cloud_pose_array.poses.append(part.pose)
-
-        self.particles_pub.publish(particle_cloud_pose_array)
+            self.particles_pub.publish(particle_cloud_pose_array)
 
 
 
@@ -178,7 +202,7 @@ class ParticleFilter:
     def resample_particles(self):
 
         # TODO
-
+        print("do stuff")
 
 
     def robot_scan_received(self, data):
@@ -257,12 +281,20 @@ class ParticleFilter:
         # based on the particles within the particle cloud, update the robot pose estimate
         
         # TODO
-
+        print("do stuff")
+        # point = Point()
+        # point.x = 0
+        # point.y = 0
+        # for p in self.particle_cloud:
+        #     pose.x = pose.x + p.position.x
+        #     pose.y = pose.y + p.position.y
+        # self.robot_estimate = pose
 
     
     def update_particle_weights_with_measurement_model(self, data):
 
         # TODO
+        print("do stuff")
 
 
         
@@ -273,6 +305,7 @@ class ParticleFilter:
         # all of the particles correspondingly
 
         # TODO
+        print("do stuff")
 
 
 
