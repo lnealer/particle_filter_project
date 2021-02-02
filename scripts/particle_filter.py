@@ -138,30 +138,26 @@ class ParticleFilter:
 
     def initialize_particle_cloud(self):
 	# initialize particle positions
-    # TODO
     #ocucpancy check
         initial_particle_set = []
         res = self.map.info.resolution
-        print(res)
         origin_x = self.map.info.origin.position.x
         origin_y = self.map.info.origin.position.y
-        shiftx = origin_x/res
-        print(shiftx)
+        shiftx = origin_x/res # map from occupancy grid to rviz
         shifty = origin_x/res
-        print(shifty)
         i=0
         while (i <= 10000):
             x = randint(0,self.map.info.width)
             y = randint(0,self.map.info.height)
-            ind = (x)+(y)*self.map.info.width
+            ind = x + y*self.map.info.width
             if (ind >= len(self.map.data)):
                 continue
             if self.map.data[ind] != -1:
-                     i+= 1
+                     i += 1
                      theta = np.pi/randint(1,3)
-                     x = float(x+shiftx)
-                     y= float(y+shifty)
-                     initial_particle_set.append([x*res,y*res,theta])
+                     x = float(x+shiftx)*res
+                     y = float(y+shifty)*res
+                     initial_particle_set.append([x,y,theta])
 
         # assign positions to particles
         for i in range(len(initial_particle_set)):
