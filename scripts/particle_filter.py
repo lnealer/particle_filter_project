@@ -156,7 +156,6 @@ class ParticleFilter:
                      i += 1
                      theta = np.pi/randint(1,3)
                      x = float(x+shiftx)*res
-                     print(x)
                      y = float(y+shifty)*res
                      initial_particle_set.append([x,y,theta])
 
@@ -321,12 +320,11 @@ class ParticleFilter:
             origin_y = self.map.info.origin.position.y
             shiftx = origin_x/res # map from occupancy grid to rviz
             shifty = origin_x/res
-            dx = dx*res
-            dy = dy*res
+            dx = dx
+            dy = dy
             p.pose.position.x += dx
             p.pose.position.y += dy
             q = quaternion_from_euler(0.0, 0.0, old_yaw+dyaw)
-            print(p.pose.position.x)
             p.pose.orientation.x = q[0]                                             
             p.pose.orientation.y = q[1]
             p.pose.orientation.z = q[2]
