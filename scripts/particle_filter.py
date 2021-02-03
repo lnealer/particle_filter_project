@@ -154,7 +154,7 @@ class ParticleFilter:
                 continue
             if self.map.data[ind] != -1:
                      i += 1
-                     theta = np.pi*float(randint)(1,20)/2
+                     theta = np.pi*float(randint(1,20))/2
                      x = float(x+shiftx)*res
                      y = float(y+shifty)*res
                      initial_particle_set.append([x,y,theta])
