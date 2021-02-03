@@ -88,7 +88,7 @@ class ParticleFilter:
 
 
         # the number of particles used in the particle filter
-        self.num_particles = 10000
+        self.num_particles = 10
 
         # initialize the particle cloud array
         self.particle_cloud = []
@@ -182,8 +182,18 @@ class ParticleFilter:
 
     def normalize_particles(self):
         # make all the particle weights sum to 1.0
-        print("do stuff")    
-        # TODO
+        w_sum = 0
+
+        # get the sum
+        for p in self.particle_cloud:
+            w_sum += p.w
+
+        # normalize the weights
+        for p in self.particle_cloud:
+             p.w /= w_sum
+
+
+
 
     def publish_particle_cloud(self):
         particle_cloud_pose_array = PoseArray()
@@ -208,7 +218,7 @@ class ParticleFilter:
     def resample_particles(self):
 
         # TODO
-        print("do stuff")
+        print("resampling...")
 
 
     def robot_scan_received(self, data):
@@ -260,6 +270,8 @@ class ParticleFilter:
             curr_yaw = get_yaw_from_pose(self.odom_pose.pose)
             old_yaw = get_yaw_from_pose(self.odom_pose_last_motion_update.pose)
 
+
+
             if (np.abs(curr_x - old_x) > self.lin_mvmt_threshold or 
                 np.abs(curr_y - old_y) > self.lin_mvmt_threshold or
                 np.abs(curr_yaw - old_yaw) > self.ang_mvmt_threshold):
@@ -286,14 +298,43 @@ class ParticleFilter:
     def update_estimated_robot_pose(self):
         # based on the particles within the particle cloud, update the robot pose estimate
         
-        # TODO
-        print("do stuff")
 
-    
+        # I'm not acutally sure what the robot pose estimate is supposed to represent. Is it the weighted average of points?
+
+        # Calculating weighted averages...
+        eX = 0
+        eY = 0
+        eCos = 0
+        eSin = 0
+
+        for p in self.particle_cloud:
+            eX += p.pose.position.x * p.w
+            eY += p.pose.position.y * p.w
+            yaw =  get_yaw_from_pose(p.pose)
+            print ("This point has yaw: " + str(yaw))
+            eCos += math.cos(yaw) * p.w
+            eSin += math.sin(yaw) * p.w
+        
+            
+        # Construct the average yaw.
+        eTheta = math.atan2(eSin,eCos)
+        
+        # Updating the estimated pose.
+        self.robot_estimate.position.x = eX
+        self.robot_estimate.position.y = eY
+        q = quaternion_from_euler(0, 0, eTheta)
+        self.robot_estimate.orientation.x = q[0]
+        self.robot_estimate.orientation.y = q[1]
+        self.robot_estimate.orientation.z = q[2]
+        self.robot_estimate.orientation.w = q[3]
+
+
+        
+
     def update_particle_weights_with_measurement_model(self, data):
 
         # TODO
-        print("do stuff")
+        print("updating particles...")
 
 
         
@@ -303,28 +344,32 @@ class ParticleFilter:
         # based on the how the robot has moved (calculated from its odometry), we'll  move
         # all of the particles correspondingly
 
-        # TODO
-        curr_x = self.odom_pose.pose.position.x
-        old_x = self.odom_pose_last_motion_update.pose.position.x
+        # The current and previous odometer readings
+        curr = self.odom_pose.pose
+        old  = self.odom_pose_last_motion_update.pose
+
+
+        # Find the change in x, y, theta/yaw
+        curr_x = curr.position.x
+        old_x  = old.position.x
         dx = curr_x - old_x
-        curr_y = self.odom_pose.pose.position.y
-        old_y = self.odom_pose_last_motion_update.pose.position.y     
+
+        curr_y = curr.position.y
+        old_y = old.position.y     
         dy = curr_y - old_y 
-        curr_yaw = get_yaw_from_pose(self.odom_pose.pose)
-        old_yaw = get_yaw_from_pose(self.odom_pose_last_motion_update.pose)
+
+        curr_yaw = get_yaw_from_pose(curr)
+        old_yaw = get_yaw_from_pose(old)        
         dyaw = curr_yaw - old_yaw
 
+        # Apply these changes to each particle.
         for p in self.particle_cloud:
-            res = self.map.info.resolution
-            origin_x = self.map.info.origin.position.x
-            origin_y = self.map.info.origin.position.y
-            shiftx = origin_x/res # map from occupancy grid to rviz
-            shifty = origin_x/res
-            dx = dx
-            dy = dy
             p.pose.position.x += dx
             p.pose.position.y += dy
-            q = quaternion_from_euler(0.0, 0.0, old_yaw+dyaw)
+            
+            point_yaw = get_yaw_from_pose(p.pose)
+            q = quaternion_from_euler(0.0, 0.0, point_yaw + dyaw)
+
             p.pose.orientation.x = q[0]                                             
             p.pose.orientation.y = q[1]
             p.pose.orientation.z = q[2]
