@@ -75,6 +75,7 @@ class ParticleFilter:
 
         # initialize this particle filter node
         rospy.init_node('turtlebot3_particle_filter')
+        rospy.set_param("/use_sim_time", "true")
 
         # set the topic names and frame names
         self.base_frame = "base_footprint"
@@ -84,11 +85,10 @@ class ParticleFilter:
 
         # inialize our map and occupancy field
         self.map = OccupancyGrid()
-        self.occupancy_field = None
 
 
         # the number of particles used in the particle filter
-        self.num_particles = 10
+        self.num_particles = 100
 
         # initialize the particle cloud array
         self.particle_cloud = []
@@ -144,7 +144,7 @@ class ParticleFilter:
         origin_x = self.map.info.origin.position.x
         origin_y = self.map.info.origin.position.y
         shiftx = origin_x/res # map from occupancy grid to rviz
-        shifty = origin_x/res
+        shifty = origin_y/res
         i=0
         while (i < self.num_particles):
             x = randint(0,self.map.info.width)
@@ -176,6 +176,7 @@ class ParticleFilter:
             new_particle = Particle(p, 1.0)      
 	    	#append the particle to the particle cloud
             self.particle_cloud.append(new_particle)
+
         self.normalize_particles()
         self.publish_particle_cloud()
 
@@ -216,9 +217,13 @@ class ParticleFilter:
 
 
     def resample_particles(self):
+        # build an array of particle weights
+        probabilities = []
+        for p in self.particle_cloud:
+            probabilities.append(p.w)
 
-        # TODO
-        print("resampling...")
+         # resample and update particle_cloud
+        self.particle_cloud = draw_random_sample(self.particle_cloud, probabilities, self.num_particles)
 
 
     def robot_scan_received(self, data):
@@ -384,12 +389,3 @@ if __name__=="__main__":
     pf = ParticleFilter()
 
     rospy.spin()
-
-
-
-
-
-
-
-
-
