@@ -172,7 +172,7 @@ class ParticleFilter:
             ind = x + y*self.map.info.width
             if (ind >= len(self.map.data)):
                 continue
-            if self.map.data[ind] != -1:
+            if self.map.data[ind] != -1 and self.map.data[ind] != 100:
                      i += 1
                      theta = 2 * np.pi*float(randint(1,1000))/1000
                      x = float(x+shiftx)*res
@@ -309,6 +309,8 @@ class ParticleFilter:
                 self.normalize_particles()
 
                 self.resample_particles()
+
+                self.normalize_particles()
 
                 self.update_estimated_robot_pose()
 
